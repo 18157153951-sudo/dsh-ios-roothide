@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: build-dsh-ios
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: macos-15-intel
@@ -36,11 +40,11 @@ jobs:
         run: |
           chmod +x scripts/ios/*.sh
           ./scripts/ios/build-node-ios.sh
-        timeout-minutes: 120
+        timeout-minutes: 360
 
       - name: 打包 dsh-ios deb（node-pty addon + DSH 全量依赖）
         run: ./scripts/ios/build-dsh-ios.sh
-        timeout-minutes: 60
+        timeout-minutes: 180
 
       - name: 上传 deb 产物
         uses: actions/upload-artifact@v4
