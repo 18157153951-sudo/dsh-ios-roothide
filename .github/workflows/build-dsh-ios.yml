@@ -1,0 +1,61 @@
+name: build-dsh-ios
+
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - 'scripts/**'
+      - 'ios-sdk-shim/**'
+      - '.github/workflows/build-dsh-ios.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15-intel
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 安装 ninja + ccache
+        run: brew install ninja ccache
+
+      - name: 缓存 Node 源码与构建产物
+        id: cache-node
+        uses: actions/cache@v4
+        with:
+          path: |
+            node-v22.23.2
+            .ccache
+          key: node-ios-build-${{ runner.arch }}-${{ hashFiles('scripts/ios/apply_patches.py', 'scripts/ios/build-*.sh', 'ios-sdk-shim/**') }}
+          restore-keys: |
+            node-ios-build-${{ runner.arch }}-
+
+      - name: 交叉编译 Node 22 for iOS + nodejs deb
+        run: |
+          chmod +x scripts/ios/*.sh
+          ./scripts/ios/build-node-ios.sh
+        timeout-minutes: 120
+
+      - name: 打包 dsh-ios deb（node-pty addon + DSH 全量依赖）
+        run: ./scripts/ios/build-dsh-ios.sh
+        timeout-minutes: 60
+
+      - name: 上传 deb 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsh-ios-debs
+          path: |
+            dist/nodejs_22.23.2-1_iphoneos-arm64e.deb
+            dist/dsh-ios_0.1.1-rc.2-1_iphoneos-arm64e.deb
+          if-no-files-found: error
+
+      - name: 发布到 Release（仅 tag 触发时）
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/nodejs_22.23.2-1_iphoneos-arm64e.deb
+            dist/dsh-ios_0.1.1-rc.2-1_iphoneos-arm64e.deb
+          generate_release_notes: true
