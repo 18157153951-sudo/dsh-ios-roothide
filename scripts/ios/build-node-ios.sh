@@ -6,7 +6,8 @@
 # Output: dist/nodejs_22.23.2-1_iphoneos-arm64e.deb
 set -e
 
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 mkdir -p dist
 
@@ -37,7 +38,7 @@ if [ ! -d "$NODE_SRC" ]; then
 fi
 
 echo "== [2/6] 应用 iOS 补丁 =="
-python3 "$(dirname "$0")/apply_patches.py" "$NODE_SRC"
+python3 "$SCRIPT_DIR/apply_patches.py" "$NODE_SRC"
 
 # ccache 加速（存在则启用）
 if command -v ccache >/dev/null 2>&1; then
@@ -104,7 +105,7 @@ make install DESTDIR=/tmp/node-ios-staging >/dev/null
 rm -rf /tmp/node-ios-staging/usr/local/include /tmp/node-ios-staging/usr/local/share/man
 mkdir -p /tmp/nodejs-deb/DEBIAN /tmp/nodejs-deb/usr/local/lib/nodejs
 cp -a /tmp/node-ios-staging/usr/local/. /tmp/nodejs-deb/usr/local/
-cp "$(dirname "$0")/node-jit-entitlements.plist" /tmp/nodejs-deb/usr/local/lib/nodejs/entitlements.plist
+cp "$SCRIPT_DIR/node-jit-entitlements.plist" /tmp/nodejs-deb/usr/local/lib/nodejs/entitlements.plist
 cat > /tmp/nodejs-deb/DEBIAN/control <<'CTRL'
 Package: nodejs
 Name: Node.js (RootHide iOS)
