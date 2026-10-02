@@ -128,7 +128,7 @@ echo "== [3/5] npm 安装 @deepseek-ai/dsh（跳过原生构建）=="
 mkdir -p "$WORK/dsh" && cd "$WORK/dsh"
 npm init -y >/dev/null 2>&1
 npm_config_ignore_scripts=true npm_config_fund=false npm_config_audit=false \
-  npm install @deepseek-ai/dsh@0.1.1-rc.2 --no-audit --no-fund --silent >/dev/null 2>&1
+  npm install @deepseek-ai/dsh@0.1.7-rc.2 --no-audit --no-fund --silent >/dev/null 2>&1
 
 echo "== [4/5] 应用 iOS addon + shims =="
 NM="$WORK/dsh/node_modules"
